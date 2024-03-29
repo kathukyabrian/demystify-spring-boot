@@ -23,6 +23,8 @@
     - Redhat Undertow
         - non-blocking 
 
+[Web Server vs Application Server vs Servlet Container](https://pathum-liyanagama.medium.com/java-servlet-container-vs-application-server-vs-web-server-7471f89402ac)
+
 ## Starters
 - starters are a set of convenient dependency descriptors that you can include in your application
 

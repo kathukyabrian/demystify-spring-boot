@@ -226,3 +226,121 @@ my.number-in-range=${random.int[1024,65536]}
 - The random.int* syntax is OPEN value (,max) CLOSE where the OPEN,CLOSE are any character and value,max are integers. If max is provided, then value is the minimum value and max is the maximum value (exclusive).
 
 ## Profiles
+- it is possible to segregate parts of your app config and make it available only in certain environments
+- any **@Component**, **@Configuration** or **@ConfigurationProperties** can be **marked with @Profile** to limit when it is loaded
+- to specify active profiles use below env variable
+```
+spring.profiles.active=dev,hsqldb
+```
+
+## Logging
+- spring boot uses **commons logging** for all internal logging but leaves the underlying log implementation open
+- default configurations are provided for
+    - java util logging
+    - log4j2
+    - logback
+- loggers are pre-configured to use console output with optional file output also available
+- by default, if you use **starters**, **logback** is used 
+
+### Log Format
+```
+2024-03-21T10:10:12.859Z  INFO 34208 --- [myapp] [           main] o.s.b.d.f.logexample.MyApplication       : Starting MyApplication using Java 17.0.10 with PID 34208 (/opt/apps/myapp.jar started by myuser in /opt/apps/)
+2024-03-21T10:10:12.866Z  INFO 34208 --- [myapp] [           main] o.s.b.d.f.logexample.MyApplication       : No active profile set, falling back to 1 default profile: "default"
+2024-03-21T10:10:14.323Z  INFO 34208 --- [myapp] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2024-03-21T10:10:14.348Z  INFO 34208 --- [myapp] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2024-03-21T10:10:14.348Z  INFO 34208 --- [myapp] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.19]
+2024-03-21T10:10:14.426Z  INFO 34208 --- [myapp] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2024-03-21T10:10:14.428Z  INFO 34208 --- [myapp] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1491 ms
+2024-03-21T10:10:15.041Z  INFO 34208 --- [myapp] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2024-03-21T10:10:15.061Z  INFO 34208 --- [myapp] [           main] o.s.b.d.f.logexample.MyApplication       : Started MyApplication in 2.782 seconds (process running for 3.145)
+```
+
+- structure
+    - date and time
+    - log level
+        - ERROR
+        - WARN
+        - INFO
+        - DEBUG
+        - TRACE
+    - process ID
+    - \--- separator 
+    - application name: optional
+        - only if ```spring.application.name``` is set
+        - if ```spring.application.name``` is set and you do not want it to be shown in the logs use ```logging.include-application-name = false```
+    - thread name
+    - correlation id
+        - if tracing is enabled
+    - logger name
+        - source class name
+    - log message 
+
+### File Output
+- by default logs to console
+- if you want to log to a file use either:
+    - ```logging.file.name```
+    - ```logging.file.path```
+
+|logging.file.name|logging.file.path|example|description|
+|---|---|---|---|
+|none|none||console only logging|
+|specific file|none|my.log|writes to my.log - can be absolute path or current directory|
+|none|specific directory|/var/log|writes spring.log to /var/log/|
+
+- log files rotate when they reach 10mb
+
+### File Rotation
+- if you are using logback, you can fine-tune rotation files using config files, else you need to configure rotation by yourself e.g using log4j2.xml
+- properties supported
+
+|name|description|
+|---|---|
+|logging.logback.rollingpolicy.file-name-pattern|filename pattern used to create log archives|
+|logging.logback.rollingpolicy.clean-history-on-start|if log archive cleanup should occur when the application starts|
+|logging.logback.rollingpolicy.max-file-size|maximum size of log before it is archived|
+|logging.logback.rollingpolicy.total-size-cap|maximum amount of size log archives can take before being deleted|
+|logging.logback.rollingpolicy.max-history|maximum number of archive log files to keep (defaults to 7)|
+
+### Log Levels
+- logging level can be set as follows
+    - ```logging.level.<logger-name>=<level>```
+- level
+    - TRACE
+    - DEBUG
+    - INFO
+    - WARN
+    - ERROR
+    - FATAL
+    - OFF
+
+### Log Groups
+- help group related loggers together
+
+```
+logging.group.tomcat=org.apache.catalina,org.apache.coyote,org.apache.tomcat
+
+logging.level.tomcat=trace
+```
+
+- predefined logging groups
+
+|name|loggers|
+|---|---|
+|web|org.springframework.core.codec, org.springframework.http, org.springframework.web, org.springframework.boot.actuate.endpoint.web, org.springframework.boot.web.servlet.ServletContextInitializerBeans|
+|sql|org.springframework.jdbc.core, org.hibernate.SQL, org.jooq.tools.LoggerListener|
+
+### Custom Log Configuration
+- the various logging systems can be activated by including the appropriate libraries on the classpath and can be configured by providing a suitable configuration file in
+    - root of classpath
+    - location specified by ```logging.config```
+- you can force Spring Boot to use a particular logging system by using the ```org.springframework.boot.logging.LoggingSystem``` system property. 
+- the value should be the fully qualified class name of a LoggingSystem implementation. 
+- you can also disable Spring Boot’s logging configuration entirely by using a value of none.
+- depending on your logging system, the following files are loaded:
+
+|Logging System|Customization|
+|---|---|
+|logback|logback-spring.xml or logback-spring.groovy or logback.xml or logback.groovy|
+|log4j2|log4j2-spring.xml or log4j2.xml|
+|java util logging|logging.properties|
+

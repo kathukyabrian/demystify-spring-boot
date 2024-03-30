@@ -91,3 +91,138 @@ spring-boot-starter-logging|Logging using Logback. Default logging starter|
 |spring-boot-starter-undertow|Using Undertow as the embedded servlet container. An alternative to spring-boot-starter-tomcat|
 
 ## Spring Beans and Dependency Injection
+### Recommendations
+- use constructor injection to wire up dependencies
+    - if a bean has more than 1 constructor, you will need to mark the one you want spring to use with *@Autowired*
+- use @ComponentScan to find beans
+    - all app components - @Component, @Service, @Repository, @Controller are automatically registered as beans
+
+## @SpringBootApplication Annotation
+- enables 3 features
+    1. auto-configuration(**@EnableAutoConfiguration**)
+    2. component scan(**@ComponentScan**)
+    3. ability to define extra configuration on the application class(**@SpringBootConfiguration**)
+
+
+## Application Availability
+### Liveness State
+- tells whether an application's internal state allows it to work correctly or recover by itself if it is currently failing.
+- broken liveness state means that the application is in a state that it cannot recover from and infra should restart the application
+- internal state of a spring boot application is mostly represented by **ApplicationContext**.
+- if the **ApplicationContext** has started successfully, spring boot assumes that the application is in a valid state.
+
+### Readiness State
+- tells whether an application is ready to handle traffic
+- a failing readiness state tells the platform that is should not route traffic to the application for now.
+- typically happens during startup, while **CommandLineRunner** and **ApplicationRunner** components are being processed, or at any time if the application decides that it is **too busy for additional traffic**.
+
+
+## Using ApplicationRunner and CommandLineRunner
+- if you need some code to run once the **SpringApplication** has started you can implement the **ApplicationRunner** or **CommandLineRunner** interfaces 
+    - both interfaces work the same way 
+    - offer a single *run()* - it is called just before *SpringApplication.run(…​)*
+
+-  **This contract is well suited for tasks that should run after application startup but before it starts accepting traffic.**
+
+## Application Exit
+- each SpringBootApplication registers a shut down hook with the JVM to ensure that the ApplicationContext closes gracefully on exit
+- all the standard spring lifecycle callbacks can be used e.g
+    - DisposableBean interface
+    - @PreDestroy
+- in addition, beans may implement the **org.springframework.boot.ExitCodeGenerator** interface if they wish to return a specific exit code when ```SpringApplication.exit()``` is called
+
+
+## Externalized Configuration
+- spring boot lets you externalize your config so that you are able to work with the same application code in different environments
+- examples of external configuration sources:
+    - Java properties files
+    - YAML files
+    - environment variables
+    - command-line arguments
+
+- property values can be
+    - **injected directly into your beans** using the **@Value** annotation
+    - accessed through Spring's **Environment** abstraction
+    - bound to structured objects through **@ConfigurationProperties**
+
+- spring boot uses the following property order - later property sources can override earlier ones
+    1. Default properties - specified by setting ```SpringApplication.setDefaultProperties```
+    2. ```@PropertySource``` annotations on your @Configuration classes
+    3. config data such as application.properties
+    4. RandomValuePropertySource that has properties only in random.*
+    5. OS env variables
+    6. Java System Props - System.getProperties
+    7. JNDI attributes from java:comp/env
+    8. ServletContext init params
+    9. ServletConfig init params
+    10. Properties from SPRING_APPLICATION_JSON
+    11. Command line arguments
+    12. properties attributes on your tests
+    13. @DynamicPropertySource annotations in your tests
+    14. @TestPropertySource in your tests
+    15 Devtools global settings properties
+
+- config data files are considered in the following order
+    - Application Properties file packaged inside your jar - application.properties and YAML variants
+    - Profile-specific application properties packaged inside your jar 
+    - Application properties outside your jar
+    - Profile-specific application properties outside your jar
+
+### External Application Properties
+- spring boot will automatically find and load application.properties and application.yaml files from the following locations when your application starts
+    - from the classpath
+        1. classpath root
+        1. classpath /config package
+    - from the current directory
+        1. current directory
+        1. the config subdirectory in the current directory
+        1. immediate child directories of the config directory
+
+- you can override the name of the config using
+    ```spring.config.name=myproject```
+
+- you can also refer to an explicit file location using 
+    ```spring.config.location=optional:classpath:/default.properties,\optional:classpath:/override.properties```
+    - this allows comma separated list of one or more locations to check
+    - optional prefix means that you do not mind if the locations do not exist
+
+### WildCard Locations
+- eg /config/* - this will load all config files in the config folder
+
+### Configuration Trees
+- usecase example: Kubernetes
+- 2 options
+    1. single file contains a complete set of properties
+    2. multiple files are written to a directory tree - filename becomes the key and the contents become the value
+- for case 1 - you can import the file using **spring.config.import**
+- for case 2 - you need **configtree:** prefix so that spring boot knows it needs to expose all file as properties
+
+- example
+    - /etc
+        - /config
+            - /myapp
+                - username
+                - password
+
+- username would be a config value and password would be a secret
+- to import these props you can add the following to application.properties
+```spring.config.import=optional:configtree:/etc/config/``` 
+
+### Property Placeholders
+```
+app.name=MyApp
+app.description=${app.name} is a Spring Boot application written by ${username:Unknown}
+```
+
+### Configuring Random Values
+```
+my.secret=${random.value}
+my.number=${random.int}
+my.bignumber=${random.long}
+my.uuid=${random.uuid}
+my.number-less-than-ten=${random.int(10)}
+my.number-in-range=${random.int[1024,65536]}
+```
+- The random.int* syntax is OPEN value (,max) CLOSE where the OPEN,CLOSE are any character and value,max are integers. If max is provided, then value is the minimum value and max is the maximum value (exclusive).
+
+## Profiles

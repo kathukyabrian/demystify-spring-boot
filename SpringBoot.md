@@ -344,3 +344,39 @@ logging.level.tomcat=trace
 |log4j2|log4j2-spring.xml or log4j2.xml|
 |java util logging|logging.properties|
 
+
+
+
+## Aspect Oriented Programming
+[Aspect Oriented Programming in Spring](https://docs.spring.io/spring-framework/reference/core/aop-api.html)
+- AOP complements OOP by providing another way of thinking about program structure
+- key unit of modularity in *OOP* is a **class** - whereas in *AOP* it is an **aspect**
+- aspects enable the modularization of concerns(e.g transaction management) that cut across multiple types and objects(crosscutting concerns)
+- used in the spring framework to
+    - provide declarative enterprise services
+    - let users implement custom aspects 
+
+### Concepts
+> Aspect - modularization of a concern that cuts across multiple classes
+
+> Join Point - a point during the execution of a program e.g execution of a method or handling of an exception
+
+> Advice - action taken by an aspect at a particular join point
+
+> Pointcut - a predicate that matches join points - advice is associated with a pointcut expression and runs at any joint point matched by the pointcut. (**AspectJ**)
+
+> Introduction - declaring additional methods of fields on behalf of a type 
+
+> Target Object - an object being advised by 1 or more aspects
+
+> AOP Proxy - object created by AOP framework in order to implement the aspect contracts
+
+> Weaving - linking aspects with other app types or objects to create an advised object
+
+### Advice Types
+- **Before** Advice - runs before a join point but does not have ability to prevent execution flow proceeding to the join point
+- **After Returning** Advice - to be run after a join point completes normally
+- **After Throwing** Advice -  to be run if a method exits by throwing an exception
+- **After(finally)** Advice - to be run regardless of the means by which a join point exits (normal or exceptional return).
+- **Around** Advice -  surrounds a join point such as a method invocation. This is the most powerful kind of advice. Around advice can perform custom behavior before and after the method invocation. It is also responsible for choosing whether to proceed to the join point or to shortcut the advised method execution by returning its own return value or throwing an exception.
+

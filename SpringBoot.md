@@ -380,3 +380,30 @@ logging.level.tomcat=trace
 - **After(finally)** Advice - to be run regardless of the means by which a join point exits (normal or exceptional return).
 - **Around** Advice -  surrounds a join point such as a method invocation. This is the most powerful kind of advice. Around advice can perform custom behavior before and after the method invocation. It is also responsible for choosing whether to proceed to the join point or to shortcut the advised method execution by returning its own return value or throwing an exception.
 
+
+## Testing
+- spring boot provides a number of utilities to help when testing your application
+- provided by 2 modules
+    - spring-boot-test - core items
+    - spring-boot-test-autoconfigure - supports autoconfiguration
+- most developers use **spring-boot-starter-test** which imports
+    - spring boot test modules
+    - junit
+    - jupiter
+    - assertJ
+    - hamcrest
+    - other useful libraries
+
+### Dependencies
+- **Junit5** - de-facto standard for unit testing Java apps
+- **Spring Test and Spring Boot Test** - utilities and intergration testing support for spring boot applications
+- **AssertJ** - fluent assertion library
+- **Hamcrest** - library of matcher objects - constraints or predicates
+- **Mockito** - Java mocking framework
+- **JSONAssert** - an assertion library for JSON
+- **JSONPath** - XPath for JSON
+- **Awaitility** - library for testing async systems 
+
+### Testing Spring Applications
+- one major advantage of dependency injection is that it makes your code easier to unit test 
+- often you need to move beyond unit testing and start intergration testing

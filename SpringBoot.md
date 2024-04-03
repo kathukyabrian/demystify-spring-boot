@@ -407,3 +407,54 @@ logging.level.tomcat=trace
 ### Testing Spring Applications
 - one major advantage of dependency injection is that it makes your code easier to unit test 
 - often you need to move beyond unit testing and start intergration testing
+
+
+# Data
+## SQL Databases
+- options
+    - direct jdbc access using jdbcClient or jdbcTemplate
+    - object relation mapping such as Hibernate
+
+## Configuring a DataSource
+### Embedded Database Support
+- spring boot can autoconfigure
+    - h2
+    - hsql
+    - derby
+- you need not provide connection urls - you  only need to include a build dependency to the embedded database.
+- if there are multiple embedded databases on the classpath, set the ```spring.datasource.embedded-database-connection``` configuration property to control which one is used
+- setting the property to none disables auto-configuration of an embedded database
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.hsqldb</groupId>
+    <artifactId>hsqldb</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+### Connection to a Production Database
+```yaml
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost/test"
+    username: "dbuser"
+    password: "dbpass"
+```
+
+### Connection Pools
+- database operation
+    1. The application uses a database driver to open a connection.
+    1. A network socket is opened to connect the application and the database.
+    1. The user is authenticated.
+    1. The operation completes and the connection may be closed.
+    1. The network socket is closed.
+
+- for small projects, opening and closing a connection are not expensive enough to warrant worrying about.
+- as your application scales up, the constant opening and closing of connections becomes more expensive and can begin to impact your application's performance.
+- it makes sense to find a way of keeping connections open and passing them from operation to operation as they’re needed, rather than opening and closing a brand new connection for each operation.
+- database connection pooling is a way to reduce the cost of opening and closing connections by maintaining a “pool” of open connections that can be passed from database operation to database operation as needed. 

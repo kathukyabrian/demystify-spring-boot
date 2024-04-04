@@ -458,3 +458,40 @@ spring:
 - as your application scales up, the constant opening and closing of connections becomes more expensive and can begin to impact your application's performance.
 - it makes sense to find a way of keeping connections open and passing them from operation to operation as they’re needed, rather than opening and closing a brand new connection for each operation.
 - database connection pooling is a way to reduce the cost of opening and closing connections by maintaining a “pool” of open connections that can be passed from database operation to database operation as needed. 
+
+### How Spring Boot Does Connection Pooling
+- algorithm
+    - prefer HikariCP for its performance and concurrency
+    - Tomcat pooling Datasource
+    - Commons DBCP2 
+    - Oracle UCP
+
+- if you use **spring-boot-starter-jdbc** or **spring-boot-starter-jpa** you automatically get HikariCP
+
+- if you want to bypass the algorithm, you can explicitly specify your connection pool using ```spring.datasource.type```
+
+## JPA and Spring Data JPA
+- Java Persistence API - lets you map objects to relational databases
+- spring-boot-starter-data-jpa provides a quick way to get started - it provides the following dependencies
+    - hibernate - most popular JPA implementations
+    - spring-data-jpa - helps you implement JPA-based repositories
+    - spring-orm - core ORM support from the spring framework
+
+### Entity Classes
+- entity scanning is used 
+    - @Entity
+    - @Embeddable
+    - @MappedSuperclass
+
+### Spring Data JPA Repositories
+- interfaces that you can define to access data
+
+### Concept
+- central interface is **Repository** - takes the domain class to manage and identifier type of the domain class as the type arguments
+- **CrudRepository** and **ListCrudRepository** interfaces provide CRUD functionality for the entity class being mapped
+- **PagingAndSortingRepository** and **ListPagingAndSortingRepository** ease paginated access to entities
+- difference between the list and none list repos
+    - non list return iterables
+    - list return lists
+
+### Defining Repository Interfaces

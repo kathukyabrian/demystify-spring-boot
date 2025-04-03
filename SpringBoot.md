@@ -495,3 +495,59 @@ spring:
     - list return lists
 
 ### Defining Repository Interfaces
+- you need to define a domain class-specific repository interface
+- the interface must extend __Repository__ and be typed to the domain class and an ID type
+
+#### CRUD repository
+- gives you methods for CRUD functions
+- ListCrudRepository also exists and it returns a List for what CrudRepository would return an Iterable
+- if you are using a reactive store, use ReactiveCrudRepository or RxJava3CrudRepository
+- additionally, you can extend PagingAndSortingRepository, ReactiveSortingRepository, RxJava3SortingRepository or CoroutineSortingRepository if you need methods that allowing sorting
+- you can define your own base interface to inherit from. such an interface must be annotated with __@NoRepositoryBean__. this prevents spring data from creating an instance of it directly
+
+```java
+@NoRepositoryBean
+interface MyBaseRepository<T, ID> extends Repository<T, ID> {
+
+  Optional<T> findById(ID id);
+
+  <S extends T> S save(S entity);
+}
+
+interface UserRepository extends MyBaseRepository<User, Long> {
+  User findByEmailAddress(EmailAddress emailAddress);
+}
+```
+
+### Configuration
+#### Bootstrap Mode
+- spring data jpa repositories are default spring beans 
+  - singleton scoped
+  - eagerly initialized
+- during startup, they already interact with the JPA entity manager for verification and metadata analysis purposes.
+- spring supports the initialization of the jpa EntityManagerFactory in a background thread because the process takes time
+- to make use of that, we need to make sure that jpa repositories are initialized as late as possible
+- following values are allowed for bootstrap mode
+##### Default
+- instantiated eagerly unless explicitly annotated with @Lazy
+##### Lazy
+- causes lazy initialization proxies to be created to be injected into client beans
+- repository instances will be initialized and verified on demand
+##### Deffered
+- same as __lazy__ but triggering repository initialization in response to an __ContextRefreshedEvent__ so that repositories are verified before the application has completely started.
+
+### Persisting Entities
+- entities can be saved with the CrudRepository.save() method
+- if the entity has not yet been persisted, jpa saves the entity with a call to *entityManager.persist()*, otherwise it calls the *entityManager.merge()* method
+
+#### How JPA detects new entities
+- __version property and id property detection__
+  - first checks presence of a version property of non-primitive type, if there is, the entity is considered new if the value of that property is set to *null*
+  - if there is no version property, it proceeds to check id property, if the identifier is null, then the entity is assumed to be new.
+- __implementing Persistable__ 
+  - if an entity implements Persistable, jpa delegates the detection to the __isNew()__ method of the entity
+- __implementing EntityInformation__
+  -  you can customize the EntityInformation abstraction used in the SimpleJpaRepository implementation by creating a subclass of JpaRepositoryFactory and overriding the getEntityInformation(…) method accordingly. 
+  -  you then have to register the custom implementation of JpaRepositoryFactory as a Spring bean. Note that this should be rarely necessary.
+
+### Defining Query Methods
